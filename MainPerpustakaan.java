@@ -7,14 +7,11 @@ import java.awt.*;
 // ==========================================
 public class MainPerpustakaan extends JFrame {
 
-    // Komponen GUI Global
     static JTextArea areaOutput;
     static LinkedListKatalog perpustakaan = new LinkedListKatalog();
     
-    // PERUBAHAN: Kategori disesuaikan menjadi Buku Kiri, Manga, dan Novel
     static String[] kategoriBuku = {"Sastra Kiri & Pemikiran", "Manga & Komik", "Novel Fiksi", "Sastra Klasik", "Light Novel"};
 
-    // Method pembantu untuk mencetak teks ke Layar GUI
     static void cetak(String teks) {
         areaOutput.append(teks + "\n");
     }
@@ -23,17 +20,18 @@ public class MainPerpustakaan extends JFrame {
     // 1. STRUKTUR NODE UNTUK DOUBLE LINKED LIST (BUKU)
     // ==========================================
     static class Buku {
-        String idBuku, judul, pengarang;
+        String idBuku, judul, pengarang, kategori;
         int tahun;
         boolean isTersedia;
-        Buku next; 
-        Buku prev; 
+        Buku next;
+        Buku prev;
 
-        public Buku(String idBuku, String judul, String pengarang, int tahun) {
+        public Buku(String idBuku, String judul, String pengarang, int tahun, String kategori) {
             this.idBuku = idBuku;
             this.judul = judul;
             this.pengarang = pengarang;
             this.tahun = tahun;
+            this.kategori = kategori;
             this.isTersedia = true;
             this.next = null;
             this.prev = null;
@@ -150,8 +148,8 @@ public class MainPerpustakaan extends JFrame {
         StackRiwayat riwayat = new StackRiwayat();
         StackUndo stackUndo = new StackUndo(); 
 
-        public void injectData(String id, String judul, String pengarang, int tahun) {
-            Buku bukuBaru = new Buku(id, judul, pengarang, tahun);
+        public void injectData(String id, String judul, String pengarang, int tahun, String kategori) {
+            Buku bukuBaru = new Buku(id, judul, pengarang, tahun, kategori);
             if (head == null) {
                 head = bukuBaru;
             } else {
@@ -164,9 +162,9 @@ public class MainPerpustakaan extends JFrame {
             }
         }
 
-        public void tambahBuku(String id, String judul, String pengarang, int tahun) {
-            injectData(id, judul, pengarang, tahun);
-            cetak("Sukses: Buku '" + judul + "' berhasil ditambahkan!");
+        public void tambahBuku(String id, String judul, String pengarang, int tahun, String kategori) {
+            injectData(id, judul, pengarang, tahun, kategori);
+            cetak("Sukses: Buku '" + judul + "' (" + kategori + ") berhasil ditambahkan!");
         }
 
         public void hapusBuku(String id) {
@@ -177,7 +175,7 @@ public class MainPerpustakaan extends JFrame {
             Buku current = head;
             while (current != null) {
                 if (current.idBuku.equals(id)) {
-                    stackUndo.push(new Buku(current.idBuku, current.judul, current.pengarang, current.tahun));
+                    stackUndo.push(new Buku(current.idBuku, current.judul, current.pengarang, current.tahun, current.kategori));
 
                     if (current == head) {
                         head = current.next;
@@ -201,7 +199,7 @@ public class MainPerpustakaan extends JFrame {
             if (bukuDikembalikan == null) {
                 cetak("Tidak ada data buku yang bisa di-undo.");
             } else {
-                injectData(bukuDikembalikan.idBuku, bukuDikembalikan.judul, bukuDikembalikan.pengarang, bukuDikembalikan.tahun);
+                injectData(bukuDikembalikan.idBuku, bukuDikembalikan.judul, bukuDikembalikan.pengarang, bukuDikembalikan.tahun, bukuDikembalikan.kategori);
                 cetak("Undo Berhasil! Buku '" + bukuDikembalikan.judul + "' (ID: " + bukuDikembalikan.idBuku + ") telah dikembalikan ke katalog.");
             }
         }
@@ -360,6 +358,33 @@ public class MainPerpustakaan extends JFrame {
             cetak("--------------------------------------------------------------------------------------");
             cetak("Total: " + total + " buku  |  Tersedia: " + tersedia + "  |  Dipinjam: " + dipinjam);
         }
+
+        // Filter Linked List berdasarkan kategori (integrasi Array kategoriBuku)
+        public void lihatBukuPerKategori(String kategori) {
+            if (head == null) {
+                cetak("Katalog buku masih kosong.");
+                return;
+            }
+            int total = 0;
+            Buku current = head;
+            cetak("\n--- Buku Kategori: " + kategori + " ---");
+            cetak(String.format("%-5s | %-30s | %-20s | %-5s | %-10s", "ID", "Judul", "Pengarang", "Tahun", "Status"));
+            cetak("--------------------------------------------------------------------------------------");
+            while (current != null) {
+                if (current.kategori != null && current.kategori.equals(kategori)) {
+                    String status = current.isTersedia ? "Tersedia" : "Dipinjam";
+                    cetak(String.format("%-5s | %-30s | %-20s | %-5d | %-10s", current.idBuku, current.judul, current.pengarang, current.tahun, status));
+                    total++;
+                }
+                current = current.next;
+            }
+            cetak("--------------------------------------------------------------------------------------");
+            if (total == 0) {
+                cetak("Tidak ada buku pada kategori '" + kategori + "'.");
+            } else {
+                cetak("Total: " + total + " buku pada kategori ini.");
+            }
+        }
     }
 
     // ==========================================
@@ -383,14 +408,14 @@ public class MainPerpustakaan extends JFrame {
         btn.setFocusPainted(false);
         btn.setForeground(TEKS_TERANG);
         btn.setBackground(BG_TOMBOL);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 5, 0, 0, aksen),
-                BorderFactory.createEmptyBorder(9, 14, 9, 14)));
+                BorderFactory.createEmptyBorder(6, 14, 6, 14)));
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 btn.setBackground(BG_HOVER);
@@ -410,7 +435,7 @@ public class MainPerpustakaan extends JFrame {
         lbl.setForeground(TEKS_REDUP);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
         lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lbl.setBorder(BorderFactory.createEmptyBorder(10, 4, 4, 0));
+        lbl.setBorder(BorderFactory.createEmptyBorder(6, 4, 3, 0));
         return lbl;
     }
 
@@ -419,9 +444,13 @@ public class MainPerpustakaan extends JFrame {
     // ==========================================
     public MainPerpustakaan() {
         setTitle("Sistem Manajemen Perpustakaan Terpadu");
-        setSize(950, 720); 
+        Dimension layar = Toolkit.getDefaultToolkit().getScreenSize();
+        int lebar = Math.min(950, layar.width - 120);
+        int tinggi = Math.min(720, layar.height - 120);
+        setSize(lebar, tinggi);
+        setMinimumSize(new Dimension(760, 560));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null); 
+        setLocationRelativeTo(null);
         setLayout(new BorderLayout(0, 0));
         getContentPane().setBackground(BG_UTAMA);
 
@@ -498,7 +527,6 @@ public class MainPerpustakaan extends JFrame {
         panelMenu.setLayout(new BoxLayout(panelMenu, BoxLayout.Y_AXIS));
         panelMenu.setBackground(BG_UTAMA);
         panelMenu.setBorder(BorderFactory.createEmptyBorder(14, 7, 14, 16));
-        panelMenu.setPreferredSize(new Dimension(280, 0));
 
         // Warna aksen per kategori aksi
         JButton btnLihatSemua = buatTombol("  0.  Lihat Semua Buku",            AKSEN);
@@ -516,44 +544,55 @@ public class MainPerpustakaan extends JFrame {
         JButton btnRiwayat    = buatTombol(" 10.  Riwayat Peminjaman",          AKSEN_UNGU);
 
         JButton btnKategori   = buatTombol(" 11.  Daftar Kategori (Array)",     TEKS_REDUP);
+        JButton btnFilterKat  = buatTombol(" 12.  Lihat Buku per Kategori",     AKSEN_HIJAU);
         JButton btnBersihkan  = buatTombol("  ✕   Bersihkan Layar",            TEKS_REDUP);
 
         // Kelompok: Tampilan & Pencarian
         panelMenu.add(buatLabelSeksi("TAMPILAN & PENCARIAN"));
         panelMenu.add(btnLihatSemua);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnLihatMaju);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnLihatMundur);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnCari);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnUrut);
 
         // Kelompok: Manajemen Data
         panelMenu.add(buatLabelSeksi("MANAJEMEN DATA"));
         panelMenu.add(btnTambah);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnHapus);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnUndo);
 
         // Kelompok: Transaksi
         panelMenu.add(buatLabelSeksi("TRANSAKSI"));
         panelMenu.add(btnPinjam);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnKembali);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnRiwayat);
 
         // Kelompok: Lainnya
         panelMenu.add(buatLabelSeksi("LAINNYA"));
         panelMenu.add(btnKategori);
-        panelMenu.add(Box.createVerticalStrut(6));
+        panelMenu.add(Box.createVerticalStrut(3));
+        panelMenu.add(btnFilterKat);
+        panelMenu.add(Box.createVerticalStrut(3));
         panelMenu.add(btnBersihkan);
         panelMenu.add(Box.createVerticalGlue());
 
-        add(panelMenu, BorderLayout.EAST);
+        // Bungkus menu dalam scroll pane agar semua tombol tetap terjangkau di layar kecil
+        JScrollPane scrollMenu = new JScrollPane(panelMenu,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollMenu.setBorder(null);
+        scrollMenu.setPreferredSize(new Dimension(290, 0));
+        scrollMenu.getViewport().setBackground(BG_UTAMA);
+        scrollMenu.getVerticalScrollBar().setUnitIncrement(16);
+        add(scrollMenu, BorderLayout.EAST);
 
         // --- Footer Status Bar ---
         JLabel footer = new JLabel("  Siap  •  Gunakan tombol menu di sebelah kanan");
@@ -596,7 +635,19 @@ public class MainPerpustakaan extends JFrame {
                 if (tahunStr == null || tahunStr.isEmpty()) return;
                 
                 int tahun = Integer.parseInt(tahunStr);
-                perpustakaan.tambahBuku(id, judul, pengarang, tahun);
+
+                // Pilih kategori dari Array kategoriBuku (wajib pilih, tidak bisa ketik bebas)
+                String kategori = (String) JOptionPane.showInputDialog(
+                        this,
+                        "Pilih Kategori Buku:",
+                        "Kategori",
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        kategoriBuku,
+                        kategoriBuku[0]);
+                if (kategori == null) return;
+
+                perpustakaan.tambahBuku(id, judul, pengarang, tahun, kategori);
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Tahun terbit harus berupa angka!", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -655,6 +706,21 @@ public class MainPerpustakaan extends JFrame {
             }
         });
 
+        btnFilterKat.addActionListener(e -> {
+            // Pilih kategori dari Array, lalu filter isi Linked List
+            String kategori = (String) JOptionPane.showInputDialog(
+                    this,
+                    "Pilih Kategori untuk difilter:",
+                    "Lihat Buku per Kategori",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    kategoriBuku,
+                    kategoriBuku[0]);
+            if (kategori == null) return;
+            areaOutput.setText("");
+            perpustakaan.lihatBukuPerKategori(kategori);
+        });
+
         btnBersihkan.addActionListener(e -> areaOutput.setText(""));
     }
 
@@ -663,12 +729,12 @@ public class MainPerpustakaan extends JFrame {
     // ==========================================
     public static void main(String[] args) {
         // PERUBAHAN: Injeksi Data Dummy (Buku Kiri, Manga, dan Novel)
-        perpustakaan.injectData("K01", "Madilog", "Tan Malaka", 1943);
-        perpustakaan.injectData("K02", "Das Kapital", "Karl Marx", 1867);
-        perpustakaan.injectData("M01", "One Piece Vol. 1", "Eiichiro Oda", 1997);
-        perpustakaan.injectData("M02", "Berserk Vol. 1", "Kentaro Miura", 1989);
-        perpustakaan.injectData("N01", "Bumi Manusia", "Pramoedya A. Toer", 1980);
-        perpustakaan.injectData("N02", "Cantik Itu Luka", "Eka Kurniawan", 2002);
+        perpustakaan.injectData("K01", "Madilog", "Tan Malaka", 1943, "Sastra Kiri & Pemikiran");
+        perpustakaan.injectData("K02", "Das Kapital", "Karl Marx", 1867, "Sastra Kiri & Pemikiran");
+        perpustakaan.injectData("M01", "One Piece Vol. 1", "Eiichiro Oda", 1997, "Manga & Komik");
+        perpustakaan.injectData("M02", "Berserk Vol. 1", "Kentaro Miura", 1989, "Manga & Komik");
+        perpustakaan.injectData("N01", "Bumi Manusia", "Pramoedya A. Toer", 1980, "Novel Fiksi");
+        perpustakaan.injectData("N02", "Cantik Itu Luka", "Eka Kurniawan", 2002, "Novel Fiksi");
 
         SwingUtilities.invokeLater(() -> {
             MainPerpustakaan app = new MainPerpustakaan();
