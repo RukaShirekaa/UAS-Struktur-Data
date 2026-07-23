@@ -1,34 +1,9 @@
+import java.awt.*;
+import java.io.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.io.*;
 
-/**
- * SistemAkademikKampus - Frame utama GUI (Java Swing) - VERSI SATU FILE.
- *
- * Seluruh class digabung dalam satu file:
- *  - SistemAkademikKampus  : Frame utama GUI (public)
- *  - Mahasiswa             : entitas data mahasiswa
- *  - Node                  : simpul Linked List
- *  - LinkedListMahasiswa   : Linked List + Sorting + Searching
- *  - QueueKRS              : Queue (FIFO) antrian KRS
- *  - StackNilai            : Stack (LIFO) riwayat nilai
- *
- * Struktur data:
- *  - LINKED LIST : penyimpanan data mahasiswa
- *  - STACK       : riwayat nilai tiap mahasiswa
- *  - QUEUE       : antrian pengambilan KRS (FIFO)
- *  - SORTING     : Bubble Sort ranking IPK
- *  - SEARCHING   : Sequential + Binary Search
- *
- * FITUR: detail mahasiswa, auto sorting, notifikasi popup, simulasi KRS,
- *        status KRS, save/load file, edit data, log aktivitas, validasi, UI warna.
- *
- * Cara jalan:
- *   javac SistemAkademikKampus.java
- *   java SistemAkademikKampus
- */
 public class SistemAkademikKampus extends JFrame {
 
     // ---- Struktur data inti ----
